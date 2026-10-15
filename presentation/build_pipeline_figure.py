@@ -32,7 +32,7 @@ STAGES = [
     ("1", "DATA", BLUE, [
         "StudentDropoutDataset (Zenodo)",
         f"{n(h['records'])} enrolment records",
-        f"{n(h['students'])} students · {n(h['courses'])} courses",
+        f"{n(h['students'])} students",
         "Clean, link, validate counts",
     ]),
     ("2", "FORECAST", BLUE, [
