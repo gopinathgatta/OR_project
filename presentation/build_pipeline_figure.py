@@ -38,7 +38,7 @@ STAGES = [
     ("2", "FORECAST", BLUE, [
         "Student & course flow model",
         r"$D_c = F_c(1{+}g) + \rho_c R_c$",
-        f"{n(proj['demand'])} seats for 2023",
+        f"{n(proj['demand'])} seats of demand",
         "Split-half validated (4.2% MAPE)",
     ]),
     ("3", "DIAGNOSE", ORANGE, [
