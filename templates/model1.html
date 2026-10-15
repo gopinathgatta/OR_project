@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-head">
+    <h1>Model 1 &middot; Integer Programming &mdash; Minimum Section Allocation</h1>
+</div>
+
+<div class="card">
+    <div class="formula">min &Sigma;<sub>c</sub> x<sub>c</sub> &nbsp; subject to &nbsp;
+        cap &middot; x<sub>c</sub> &ge; (1 + &beta;) D<sub>c</sub>, &nbsp;
+        x<sub>c</sub> &ge; 1, &nbsp; x<sub>c</sub> &isin; &#8484;<sub>+</sub></div>
+
+    <div class="dot-grid">
+        <div class="dot-box">
+            <div class="dot-title">&#9312; DECISION VARIABLE</div>
+            <div class="dot-sub">what we choose</div>
+            <div class="dot-body">How many sections to open for <strong>each course</strong>.</div>
+            <code>x_c  =  0, 1, 2, 3 &hellip;</code>
+            <div class="dot-note">A whole number &mdash; you cannot open half a section.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">&#9313; OBJECTIVE</div>
+            <div class="dot-sub">what we optimise</div>
+            <div class="dot-body">Open as <strong>few</strong> sections as possible.</div>
+            <code>minimise   &Sigma; x_c</code>
+            <div class="dot-note">Fewer sections = less staff, rooms and timetable.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">&#9314; TARGET</div>
+            <div class="dot-sub">the rule we must obey</div>
+            <div class="dot-body"><strong>Every student gets a seat</strong> in every course.</div>
+            <code>cap &middot; x_c  &ge;  D_c</code>
+            <div class="dot-note">Seats provided must cover the projected demand of each course.</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Parameters</h3>
+    <form class="form-row" method="get">
+        <div class="field">
+            <label for="capacity">Section capacity (students per section)</label>
+            <input type="number" id="capacity" name="capacity" value="{{ cap | int }}" min="10" max="300" step="5">
+        </div>
+        <div class="field">
+            <label for="buffer">Demand safety buffer &beta;</label>
+            <input type="number" id="buffer" name="buffer" value="{{ buffer }}" min="0" max="0.25" step="0.01">
+        </div>
+        <button class="btn" type="submit">Solve</button>
+    </form>
+</div>
+
+<div class="grid grid-5" style="margin-bottom:18px">
+    <div class="kpi"><div class="label">Minimum total sections</div>
+        <div class="value">{{ s.total_sections | num }}</div>
+        <div class="sub">{{ '%+d' | format(s.total_sections - current) }} vs {{ current | num }} current</div></div>
+    <div class="kpi"><div class="label">Unmet demand</div>
+        <div class="value">{{ s.unmet_demand | num }}</div>
+        <div class="sub good">coverage {{ '%.2f%%' | format(s.achieved_coverage * 100) }}</div></div>
+    <div class="kpi"><div class="label">LP relaxation</div>
+        <div class="value">{{ s.lp_relaxation_sections | num(1) }}</div>
+        <div class="sub">gap {{ s.integrality_gap_sections | num(1) }}</div></div>
+    <div class="kpi"><div class="label">Courses needing more</div>
+        <div class="value">{{ n_more }}</div><div class="sub">{{ n_less }} can release</div></div>
+    <div class="kpi"><div class="label">Seat utilisation</div>
+        <div class="value">{{ '%.0f%%' | format(s.mean_utilisation * 100) }}</div>
+        <div class="sub">mean across courses</div></div>
+</div>
+
+<div class="card">
+    <h2>Demand vs seats provided &mdash; largest changes</h2>
+    <div class="chart-box"><canvas id="m1Chart"></canvas></div>
+</div>
+
+<div class="card">
+    <h2>Courses whose section count changes</h2>
+    <p class="note">Solver: {{ status }} &middot; all integer: {{ s.all_integer }} &middot;
+        demand fully met: {{ s.demand_fully_met }}. Showing the first 60 of
+        {{ (n_more + n_less) | num }} changed courses.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr>
+                <th class="left">Course ID</th><th class="left">Programme</th><th>Demand</th>
+                <th>Current sections</th><th>Sections x<sub>c</sub></th><th>Change</th>
+                <th>Seats</th><th>Utilisation</th>
+            </tr></thead>
+            <tbody>
+            {% for r in rows %}
+                <tr>
+                    <td class="left">{{ r.course_id }}</td>
+                    <td class="left">{{ r.programme_id }}</td>
+                    <td>{{ '%.1f' | format(r.demand) }}</td>
+                    <td>{{ r.current_sections }}</td>
+                    <td>{{ r.sections }}</td>
+                    <td class="{{ 'pos' if r.change > 0 else 'neg' }}">{{ '%+d' | format(r.change) }}</td>
+                    <td>{{ r.capacity | num }}</td>
+                    <td>{% if r.capacity %}{{ '%.0f%%' | format(r.utilisation * 100) }}{% else %}&ndash;{% endif %}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var c = themeColours();
+    new Chart(document.getElementById('m1Chart'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels | tojson }},
+            datasets: [
+                { label: 'Projected demand', data: {{ chart_demand | tojson }},
+                  backgroundColor: c.bad, borderRadius: 3 },
+                { label: 'Seats provided by Model 1', data: {{ chart_capacity | tojson }},
+                  backgroundColor: c.accent, borderRadius: 3 }
+            ]
+        },
+        options: {
+            plugins: { legend: { position: 'bottom' } },
+            scales: { x: { grid: { display: false } }, y: { grid: { color: c.border } } }
+        }
+    });
+</script>
+{% endblock %}

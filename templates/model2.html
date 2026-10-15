@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-head">
+    <h1>Model 2 &middot; Binary Programming &mdash; Limited Additional Capacity</h1>
+</div>
+
+<div class="card">
+    <div class="formula">max &Sigma;<sub>c,k</sub> w<sub>c</sub> a<sub>ck</sub> y<sub>ck</sub> &nbsp;
+        subject to &nbsp; &Sigma; y<sub>ck</sub> &le; B, &nbsp;
+        y<sub>ck</sub> &le; y<sub>c,k&minus;1</sub>, &nbsp;
+        &Sigma;<sub>c&isin;p</sub> y<sub>ck</sub> &le; M<sub>p</sub>, &nbsp;
+        y<sub>ck</sub> &isin; {0, 1}</div>
+
+    <div class="dot-grid">
+        <div class="dot-box">
+            <div class="dot-title">&#9312; DECISION VARIABLE</div>
+            <div class="dot-sub">what we choose</div>
+            <div class="dot-body">For each possible extra section: <strong>open it, or not?</strong></div>
+            <code>y = 1   open it
+y = 0   do not</code>
+            <div class="dot-note">Yes/no only &mdash; this is the binary (0-1) model.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">&#9313; OBJECTIVE</div>
+            <div class="dot-sub">what we optimise</div>
+            <div class="dot-body">Seat as <strong>many</strong> students as possible with the sections we have.</div>
+            <code>maximise   &Sigma; w &middot; (students seated)</code>
+            <div class="dot-note">Every student counts the same.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">&#9314; TARGET</div>
+            <div class="dot-sub">the rule we must obey</div>
+            <div class="dot-body">Use no more than <strong>{{ budget }}</strong> extra sections.</div>
+            <code>&Sigma; y  &le;  {{ budget }}</code>
+            <div class="dot-note">The budget is the knapsack; each candidate section is an item.</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Parameters</h3>
+    <form class="form-row" method="get">
+        <div class="field">
+            <label for="capacity">Section capacity</label>
+            <input type="number" id="capacity" name="capacity" value="{{ cap | int }}" min="10" max="300" step="5">
+        </div>
+        <div class="field">
+            <label for="budget">Extra sections available (budget B)</label>
+            <input type="number" id="budget" name="budget" value="{{ budget }}" min="0" max="2000" step="5">
+        </div>
+        <div class="field">
+            <label for="maxprog">Max per programme (0 = no limit)</label>
+            <input type="number" id="maxprog" name="maxprog" value="{{ maxprog }}" min="0" max="500">
+        </div>
+        <button class="btn" type="submit">Solve</button>
+    </form>
+</div>
+
+<div class="grid grid-5" style="margin-bottom:18px">
+    <div class="kpi"><div class="label">Unmet demand before</div>
+        <div class="value">{{ s.unmet_demand_before | num }}</div><div class="sub">students</div></div>
+    <div class="kpi"><div class="label">Unmet demand after</div>
+        <div class="value">{{ s.unmet_demand_after | num }}</div>
+        <div class="sub good">&minus;{{ '%.1f' | format(s.unmet_reduction_pct) }}%</div></div>
+    <div class="kpi"><div class="label">Sections used</div>
+        <div class="value">{{ s.extra_sections_used }} / {{ s.extra_sections_available }}</div>
+        <div class="sub">across {{ s.courses_receiving_sections }} courses</div></div>
+    <div class="kpi"><div class="label">Courses still short</div>
+        <div class="value">{{ s.courses_short_after }}</div>
+        <div class="sub">was {{ s.courses_short_before }}</div></div>
+    <div class="kpi"><div class="label">Sections to clear all</div>
+        <div class="value">{{ s.sections_needed_to_clear_all }}</div>
+        <div class="sub">for zero unmet demand</div></div>
+</div>
+
+<div class="card">
+    <h2>Unmet demand per bottleneck course: covered vs remaining</h2>
+    <div class="chart-box"><canvas id="m2Chart"></canvas></div>
+</div>
+
+<div class="card">
+    <h2>Where the extra sections go</h2>
+    <p class="note">Solver: {{ status }}. Showing the first 60 courses that start with unmet demand.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr>
+                <th class="left">Course ID</th><th class="left">Programme</th><th>Demand</th>
+                <th>Current sections</th><th>Unmet before</th><th>Extra sections</th>
+                <th>Covered</th><th>Unmet after</th>
+            </tr></thead>
+            <tbody>
+            {% for r in rows %}
+                <tr>
+                    <td class="left">{{ r.course_id }}</td>
+                    <td class="left">{{ r.programme_id }}</td>
+                    <td>{{ '%.1f' | format(r.demand) }}</td>
+                    <td>{{ r.current_sections }}</td>
+                    <td>{{ '%.1f' | format(r.unmet_before) }}</td>
+                    <td>{% if r.extra_sections %}<span class="badge good">+{{ r.extra_sections }}</span>{% else %}0{% endif %}</td>
+                    <td>{{ '%.1f' | format(r.covered_demand) }}</td>
+                    <td>{{ '%.1f' | format(r.unmet_after) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var c = themeColours();
+    new Chart(document.getElementById('m2Chart'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels | tojson }},
+            datasets: [
+                { label: 'Covered by extra sections', data: {{ chart_covered | tojson }},
+                  backgroundColor: c.accent, borderRadius: 3 },
+                { label: 'Still unmet', data: {{ chart_remaining | tojson }},
+                  backgroundColor: c.bad, borderRadius: 3 }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            plugins: { legend: { position: 'bottom' } },
+            scales: { x: { stacked: true, grid: { color: c.border } },
+                      y: { stacked: true, grid: { display: false } } }
+        }
+    });
+</script>
+{% endblock %}

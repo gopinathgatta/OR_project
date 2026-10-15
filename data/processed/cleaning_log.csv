@@ -1,0 +1,11 @@
+step,detail,rows_after
+load,3 yearly files loaded,464739
+standardise_ids,"IDs stripped, lower-cased, validated as hexadecimal hashes",464739
+drop_missing_keys,"0 rows without a student, course, programme or year removed",464739
+drop_exact_duplicates,0 exact duplicate rows removed,464739
+drop_key_duplicates,0 duplicate student-course-year records removed,464739
+grades,"42655 missing grades kept as 'not_evaluated' (no credit earned; they re-enrol at the same rate as fails, so they count as not passed)",464739
+missing_values,admission_type NA -> 'UNKNOWN'; withdrawal date NA -> not withdrawn; anyo_ingreso dropped (duplicates start_year),464739
+linkage,"student-course trajectories linked across [2018, 2021, 2022]; repeat enrolment identifiable for [2022] (previous year present)",464739
+select_variables,25 modelling variables retained,464739
+course_statistics,11393 course-year statistic rows built,464739

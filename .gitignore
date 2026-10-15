@@ -1,0 +1,15 @@
+# Extracted dataset CSVs (~250 MB) - regenerated from 17239943.zip by
+#   python run_pipeline.py --reprocess
+data/raw/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Environments / editors
+.venv/
+venv/
+.idea/
+.vscode/

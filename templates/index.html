@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-head">
+    <h1>Dashboard</h1>
+</div>
+
+<div class="grid grid-5" style="margin-bottom:18px">
+    <div class="kpi"><div class="label">Enrolment records</div>
+        <div class="value">{{ headline.records | num }}</div><div class="sub">2018, 2021, 2022</div></div>
+    <div class="kpi"><div class="label">Students</div>
+        <div class="value">{{ headline.students | num }}</div><div class="sub">{{ headline.courses | num }} courses</div></div>
+    <div class="kpi"><div class="label">Projected demand 2023</div>
+        <div class="value">{{ proj.demand | num }}</div>
+        <div class="sub">{{ proj.first_time | num }} first-time + {{ proj.repeat | num }} repeat</div></div>
+    <div class="kpi"><div class="label">Bottleneck courses</div>
+        <div class="value">{{ bn.bottleneck_courses }}</div>
+        <div class="sub bad">{{ bn.at_risk_courses }} more at risk</div></div>
+    <div class="kpi"><div class="label">Students without a seat</div>
+        <div class="value">{{ bn.projected_unmet_demand | num }}</div>
+        <div class="sub">at today's modelled sections</div></div>
+</div>
+
+<div class="grid grid-2">
+    <div class="card">
+        <h2>Model 1 &middot; Integer Programming</h2>
+        <p class="note">What is the ideal? No budget limit &mdash; every student gets a seat.</p>
+        <div class="grid grid-inline" style="margin:14px 0">
+            <div class="kpi"><div class="label">Minimum sections</div>
+                <div class="value">{{ m1.total_sections | num }}</div>
+                <div class="sub">vs {{ current | num }} modelled current</div></div>
+            <div class="kpi"><div class="label">Net change</div>
+                <div class="value">{{ '%+d' | format(m1.total_sections - current) }}</div>
+                <div class="sub">sections</div></div>
+            <div class="kpi"><div class="label">Unmet demand</div>
+                <div class="value">{{ m1.unmet_demand | num }}</div>
+                <div class="sub good">all demand met</div></div>
+        </div>
+        <a class="btn" href="{{ url_for('model1') }}">Open Model 1</a>
+    </div>
+
+    <div class="card">
+        <h2>Model 2 &middot; Binary Programming</h2>
+        <p class="note">What can we afford? A fixed budget of {{ s.parameters.extra_sections }} extra sections.</p>
+        <div class="grid grid-inline" style="margin:14px 0">
+            <div class="kpi"><div class="label">Unmet before</div>
+                <div class="value">{{ m2.unmet_demand_before | num }}</div><div class="sub">students</div></div>
+            <div class="kpi"><div class="label">Unmet after</div>
+                <div class="value">{{ m2.unmet_demand_after | num }}</div>
+                <div class="sub good">&minus;{{ '%.0f' | format(m2.unmet_reduction_pct) }}%</div></div>
+            <div class="kpi"><div class="label">Sections used</div>
+                <div class="value">{{ m2.extra_sections_used }}</div>
+                <div class="sub">of {{ m2.extra_sections_available }}</div></div>
+        </div>
+        <a class="btn" href="{{ url_for('model2') }}">Open Model 2</a>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Dataset by academic year</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr>
+                <th class="left">Year</th><th>Records</th><th>Students</th><th>Courses</th>
+                <th>Programmes</th><th>Pass rate</th><th>Fail rate</th><th>Mean grade</th>
+            </tr></thead>
+            <tbody>
+            {% for r in yearly %}
+                <tr>
+                    <td class="left">{{ r.academic_year }}</td>
+                    <td>{{ r.records | num }}</td>
+                    <td>{{ r.students | num }}</td>
+                    <td>{{ r.courses | num }}</td>
+                    <td>{{ r.programmes | num }}</td>
+                    <td>{{ '%.1f%%' | format(r.pass_rate * 100) }}</td>
+                    <td>{{ '%.1f%%' | format(r.fail_rate * 100) }}</td>
+                    <td>{{ '%.2f' | format(r.mean_grade) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

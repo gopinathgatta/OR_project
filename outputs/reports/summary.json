@@ -1,0 +1,180 @@
+{
+  "parameters": {
+    "section_capacity": 50,
+    "first_time_growth": 0.0,
+    "extra_sections": 50,
+    "horizon": 5,
+    "bottleneck_threshold": 1.0,
+    "max_per_programme_variant": 5,
+    "note": "capacity is a model parameter; it is not in the dataset"
+  },
+  "validation_counts": {
+    "records": {
+      "expected": 464739,
+      "observed": 464739,
+      "match": true
+    },
+    "students": {
+      "expected": 39364,
+      "observed": 39364,
+      "match": true
+    },
+    "courses": {
+      "expected": 4989,
+      "observed": 4989,
+      "match": true
+    },
+    "programmes": {
+      "expected": 163,
+      "observed": 163,
+      "match": true
+    },
+    "academic_years": {
+      "expected": 3,
+      "observed": 3,
+      "match": true
+    }
+  },
+  "headline": {
+    "records": 464739,
+    "students": 39364,
+    "courses": 4989,
+    "programmes": 163,
+    "academic_years": [
+      2018,
+      2021,
+      2022
+    ],
+    "pass_rate": 0.7284066970923465
+  },
+  "repeat_burden_2022": {
+    "repeat_enrolments": 13446,
+    "share_of_enrolments": 0.08447412563688565,
+    "students_repeating_any_course": 5474,
+    "share_of_students": 0.26797865570078816
+  },
+  "sd_rates": {
+    "global_retake_rate": 0.3399833118410074,
+    "global_pass_rate": 0.7172887361550012
+  },
+  "validation_repeat_flow": {
+    "course_specific": {
+      "R2": 0.9085742213865665,
+      "MAE": 0.7666194498062014,
+      "total_observed": 6570.0,
+      "total_predicted": 7015.717431476094,
+      "total_error_pct": 6.7841313771094995
+    },
+    "global_rate": {
+      "R2": 0.7430886568801447,
+      "MAE": 1.1322755082263691,
+      "total_observed": 6570.0,
+      "total_predicted": 6704.951799389359,
+      "total_error_pct": 2.054060873506221
+    }
+  },
+  "validation_student_flow_mape": 4.158570384486838,
+  "projection": {
+    "demand": 161620.2207138642,
+    "first_time": 145727.0,
+    "repeat": 15893.220713864199
+  },
+  "bottlenecks": {
+    "courses_modelled": 3787,
+    "bottleneck_courses": 68,
+    "at_risk_courses": 267,
+    "projected_demand": 161620.22071386417,
+    "modelled_capacity": 278500.0,
+    "projected_unmet_demand": 436.4660153292051,
+    "extra_sections_to_clear": 67,
+    "bottleneck_repeat_share": 0.16383692276671397,
+    "programmes_affected": 28
+  },
+  "model1": {
+    "total_sections": 5612,
+    "lp_relaxation_sections": 5062.291145407422,
+    "integrality_gap_sections": 549.7088545925781,
+    "total_demand": 161620.2207138642,
+    "target_seats": 161620.2207138642,
+    "total_capacity": 280600.0,
+    "mean_utilisation": 0.5759808293437784,
+    "unmet_demand": 0.0,
+    "achieved_coverage": 1.0,
+    "courses_short": 0,
+    "all_integer": true,
+    "target_met": true,
+    "demand_fully_met": true,
+    "solver_status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+    "current_sections_modelled": 5570,
+    "courses_needing_more": 67,
+    "courses_can_release": 25,
+    "sections_added": 67,
+    "sections_released": 25
+  },
+  "model2": {
+    "extra_sections_available": 50,
+    "extra_sections_used": 50,
+    "unmet_demand_before": 436.46601532920516,
+    "unmet_demand_after": 8.803122590790906,
+    "demand_covered": 427.66289273841426,
+    "unmet_reduction_pct": 97.98309094371274,
+    "demand_coverage_pct": 99.99455320469684,
+    "courses_short_before": 67,
+    "courses_short_after": 17,
+    "courses_receiving_sections": 50,
+    "sections_needed_to_clear_all": 67
+  },
+  "model2_fair": {
+    "extra_sections_available": 50,
+    "extra_sections_used": 50,
+    "unmet_demand_before": 436.46601532920516,
+    "unmet_demand_after": 19.589044964812643,
+    "demand_covered": 416.8769703643925,
+    "unmet_reduction_pct": 95.51189685409123,
+    "demand_coverage_pct": 99.98787958284039,
+    "courses_short_before": 67,
+    "courses_short_after": 17,
+    "courses_receiving_sections": 50,
+    "sections_needed_to_clear_all": 67
+  },
+  "model2_repeat_weighted": {
+    "extra_sections_available": 50,
+    "extra_sections_used": 50,
+    "unmet_demand_before": 436.46601532920516,
+    "unmet_demand_after": 8.803122590790906,
+    "demand_covered": 427.66289273841426,
+    "unmet_reduction_pct": 97.98309094371274,
+    "demand_coverage_pct": 99.99455320469684,
+    "courses_short_before": 67,
+    "courses_short_after": 17,
+    "courses_receiving_sections": 50,
+    "sections_needed_to_clear_all": 67
+  },
+  "model2_ahp_weighted": {
+    "extra_sections_available": 50,
+    "extra_sections_used": 50,
+    "unmet_demand_before": 436.46601532920516,
+    "unmet_demand_after": 8.803122590790906,
+    "demand_covered": 427.66289273841426,
+    "unmet_reduction_pct": 97.98309094371274,
+    "demand_coverage_pct": 99.99455320469684,
+    "courses_short_before": 67,
+    "courses_short_after": 17,
+    "courses_receiving_sections": 50,
+    "sections_needed_to_clear_all": 67
+  },
+  "lp_sensitivity": {
+    "lp_objective": 427.66289273841426,
+    "budget_shadow_price": 0.922002306778154,
+    "value_of_last_section": 0.9376871924969237,
+    "value_of_next_section": 0.922002306778154
+  },
+  "ahp": {
+    "criteria_weights": {
+      "Repeat-student share": 0.6483290138222365,
+      "First-year course": 0.22965079406263722,
+      "Low pass rate": 0.12202019211512626
+    },
+    "criteria_cr": 0.003184998330723208
+  }
+}

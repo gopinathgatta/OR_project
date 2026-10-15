@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-head">
+    <h1>Model 1 vs Model 2</h1>
+</div>
+
+<div class="grid grid-5" style="margin-bottom:18px">
+    <div class="kpi"><div class="label">Status quo &mdash; unseated</div>
+        <div class="value">{{ status_quo | num }}</div><div class="sub bad">no action taken</div></div>
+    <div class="kpi"><div class="label">Model 2 &mdash; unseated</div>
+        <div class="value">{{ m2.unmet_demand_after | num }}</div>
+        <div class="sub good">&minus;{{ '%.1f' | format(m2.unmet_reduction_pct) }}% with {{ budget }} sections</div></div>
+    <div class="kpi"><div class="label">Model 1 &mdash; unseated</div>
+        <div class="value">{{ m1.unmet_demand | num }}</div>
+        <div class="sub good">full coverage</div></div>
+    <div class="kpi"><div class="label">Model 1 net sections</div>
+        <div class="value">{{ '%+d' | format(m1.total_sections - current) }}</div>
+        <div class="sub">+{{ n_more }} / &minus;{{ n_less }} courses</div></div>
+    <div class="kpi"><div class="label">Sections to clear all</div>
+        <div class="value">{{ clear }}</div>
+        <div class="sub">extra sections needed</div></div>
+</div>
+
+<div class="card">
+    <h2>What each model is</h2>
+    <div class="table-wrap">
+        <table class="table-prose">
+            <thead><tr>
+                <th class="left"></th>
+                <th class="left">Model 1 &middot; Integer Programming</th>
+                <th class="left">Model 2 &middot; Binary Programming</th>
+            </tr></thead>
+            <tbody>
+                <tr><td class="left"><strong>The question</strong></td>
+                    <td class="left">What is the ideal?</td>
+                    <td class="left">What can we afford?</td></tr>
+                <tr><td class="left"><strong>Decision variable</strong></td>
+                    <td class="left">x<sub>c</sub> = sections for course c &nbsp;(0, 1, 2, 3 &hellip;)</td>
+                    <td class="left">y<sub>ck</sub> = open this extra section? &nbsp;(0 or 1)</td></tr>
+                <tr><td class="left"><strong>Type</strong></td>
+                    <td class="left">Integer &mdash; whole numbers</td>
+                    <td class="left">Binary &mdash; yes / no, knapsack</td></tr>
+                <tr><td class="left"><strong>Objective</strong></td>
+                    <td class="left">minimise &Sigma; x<sub>c</sub> &nbsp;(fewest sections)</td>
+                    <td class="left">maximise &Sigma; w &middot; students seated</td></tr>
+                <tr><td class="left"><strong>Target / constraint</strong></td>
+                    <td class="left">cap &middot; x<sub>c</sub> &ge; D<sub>c</sub> &nbsp;(everyone seated)</td>
+                    <td class="left">&Sigma; y &le; B = {{ budget }} &nbsp;(fixed budget)</td></tr>
+                <tr><td class="left"><strong>Budget limit</strong></td>
+                    <td class="left">none &mdash; demand drives the answer</td>
+                    <td class="left">yes &mdash; the budget drives the answer</td></tr>
+                <tr><td class="left"><strong>Separates by course?</strong></td>
+                    <td class="left"><span class="badge good">Yes</span> each x<sub>c</sub> is independent,
+                        so x<sub>c</sub> = ROUNDUP(D<sub>c</sub> / {{ cap | int }}) by hand</td>
+                    <td class="left"><span class="badge bad">No</span> all courses compete for one budget,
+                        so it genuinely needs the solver</td></tr>
+                <tr><td class="left"><strong>Answer</strong></td>
+                    <td class="left"><strong>{{ m1.total_sections | num }}</strong> sections
+                        ({{ '%+d' | format(m1.total_sections - current) }} vs {{ current | num }})</td>
+                    <td class="left">unseated {{ m2.unmet_demand_before | num }} &rarr;
+                        <strong>{{ m2.unmet_demand_after | num }}</strong>
+                        using {{ m2.extra_sections_used }}/{{ m2.extra_sections_available }} sections</td></tr>
+                <tr><td class="left"><strong>Courses still short</strong></td>
+                    <td class="left">0</td>
+                    <td class="left">{{ m2.courses_short_after }} (was {{ m2.courses_short_before }})</td></tr>
+                <tr><td class="left"><strong>Use it when</strong></td>
+                    <td class="left">planning the ideal timetable with no budget cap</td>
+                    <td class="left">the budget is fixed and you must prioritise</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <div class="card">
+        <h2>Students left without a seat</h2>
+        <div class="chart-box"><canvas id="cmpChart"></canvas></div>
+    </div>
+    <div class="card">
+        <h2>How Model 2 approaches Model 1 as the budget grows</h2>
+        <div class="chart-box"><canvas id="sweepChart"></canvas></div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Budget sweep</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr>
+                <th class="left">Budget B</th><th>Sections used</th>
+                <th>Students unseated</th><th>Courses still short</th><th class="left">Note</th>
+            </tr></thead>
+            <tbody>
+            {% for r in sweep %}
+                <tr>
+                    <td class="left">{{ r.budget }}</td>
+                    <td>{{ r.used }}</td>
+                    <td>{{ '%.1f' | format(r.unmet) }}</td>
+                    <td>{{ r.short }}</td>
+                    <td class="left">
+                        {% if r.budget == 0 %}status quo &mdash; no extra sections
+                        {% elif r.budget == budget %}<span class="badge">current budget</span>
+                        {% elif r.unmet == 0 %}<span class="badge good">matches Model 1 &mdash; everyone seated</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Settings</h2>
+    <form class="form-row" method="get">
+        <div class="field">
+            <label for="capacity">Section capacity</label>
+            <input type="number" id="capacity" name="capacity" value="{{ cap | int }}" min="10" max="300" step="5">
+        </div>
+        <div class="field">
+            <label for="budget">Model 2 budget B</label>
+            <input type="number" id="budget" name="budget" value="{{ budget }}" min="0" max="2000" step="5">
+        </div>
+        <button class="btn" type="submit">Recalculate</button>
+        <a class="btn btn-secondary" href="{{ url_for('model1') }}">Open Model 1</a>
+        <a class="btn btn-secondary" href="{{ url_for('model2') }}">Open Model 2</a>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var c = themeColours();
+
+    new Chart(document.getElementById('cmpChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Status quo', 'Model 2 (B = {{ budget }})', 'Model 1 (full coverage)'],
+            datasets: [{
+                label: 'Students without a seat',
+                data: [{{ status_quo | round(1) }}, {{ m2.unmet_demand_after | round(1) }}, {{ m1.unmet_demand | round(1) }}],
+                backgroundColor: [c.bad, c.warn, c.good],
+                borderRadius: 3
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false } }, y: { grid: { color: c.border } } }
+        }
+    });
+
+    new Chart(document.getElementById('sweepChart'), {
+        type: 'line',
+        data: {
+            labels: {{ sweep_labels | tojson }},
+            datasets: [{
+                label: 'Students unseated',
+                data: {{ sweep_values | tojson }},
+                borderColor: c.accent,
+                backgroundColor: c.accent,
+                tension: 0.25,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { title: { display: true, text: 'extra sections available (B)' }, grid: { display: false } },
+                y: { title: { display: true, text: 'students unseated' }, grid: { color: c.border } }
+            }
+        }
+    });
+</script>
+{% endblock %}

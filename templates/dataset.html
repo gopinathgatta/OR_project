@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-head">
+    <h1>Dataset</h1>
+</div>
+
+<div class="grid grid-5" style="margin-bottom:18px">
+    <div class="kpi"><div class="label">Courses in view</div><div class="value">{{ n_courses | num }}</div></div>
+    <div class="kpi"><div class="label">Programmes</div><div class="value">{{ n_programmes | num }}</div></div>
+    <div class="kpi"><div class="label">Enrolments</div><div class="value">{{ n_students | num }}</div></div>
+    <div class="kpi"><div class="label">Rows matched</div><div class="value">{{ n_records | num }}</div></div>
+    <div class="kpi"><div class="label">Academic year</div><div class="value">{{ year }}</div></div>
+</div>
+
+<div class="card">
+    <h2>Generate statistics on demand</h2>
+    <form class="form-row" method="get">
+        <div class="field">
+            <label for="year">Academic year</label>
+            <select id="year" name="year">
+                {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label for="stat">Rank by</label>
+            <select id="stat" name="stat">
+                {% for st in stats %}<option value="{{ st }}" {% if st == stat %}selected{% endif %}>{{ st }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label for="topn">Top N</label>
+            <input type="number" id="topn" name="topn" value="{{ topn }}" min="5" max="200" step="5">
+        </div>
+        <button class="btn" type="submit">Generate</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Top {{ topn }} courses by {{ stat }} &mdash; {{ year }}</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr>
+                <th class="left">Course ID</th><th class="left">Programme</th><th>Enrolment</th>
+                <th>Pass rate</th><th>Fail rate</th><th>Repeat rate</th><th>Mean grade</th>
+            </tr></thead>
+            <tbody>
+            {% for r in rows %}
+                <tr>
+                    <td class="left">{{ r.course_id }}</td>
+                    <td class="left">{{ r.programme_id }}</td>
+                    <td>{{ r.enrolment | num }}</td>
+                    <td>{{ '%.1f%%' | format(r.pass_rate * 100) if r.pass_rate == r.pass_rate else '&ndash;' }}</td>
+                    <td>{{ '%.1f%%' | format(r.fail_rate * 100) if r.fail_rate == r.fail_rate else '&ndash;' }}</td>
+                    <td>{{ '%.1f%%' | format(r.repeat_rate * 100) if r.repeat_rate == r.repeat_rate else '&ndash;' }}</td>
+                    <td>{{ '%.2f' | format(r.mean_grade) if r.mean_grade == r.mean_grade else '&ndash;' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Summary by academic year</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr>
+                <th class="left">Year</th><th>Records</th><th>Students</th><th>Courses</th>
+                <th>Programmes</th><th>Pass rate</th><th>Mean grade</th>
+            </tr></thead>
+            <tbody>
+            {% for r in yearly %}
+                <tr>
+                    <td class="left">{{ r.academic_year }}</td>
+                    <td>{{ r.records | num }}</td>
+                    <td>{{ r.students | num }}</td>
+                    <td>{{ r.courses | num }}</td>
+                    <td>{{ r.programmes | num }}</td>
+                    <td>{{ '%.1f%%' | format(r.pass_rate * 100) }}</td>
+                    <td>{{ '%.2f' | format(r.mean_grade) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
