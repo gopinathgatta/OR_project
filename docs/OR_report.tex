@@ -127,11 +127,26 @@ The principal contributions of this paper are:
       tests.
 \end{enumerate}
 
+Fig.~ef{fig:pipeline} shows the end-to-end pipeline, from the published records through demand projection and bottleneck diagnosis to the two optimisation models and the delivered artefacts.
+
 A deliberate scope restriction applies throughout. Section capacity is a
 \emph{planning parameter chosen by the university}, not a variable observed in the
 dataset; the published data contains no room or capacity field. Furthermore, this work
 does \emph{not} predict which individual students will drop out. The models allocate
 teaching capacity; they do not profile students.
+
+\begin{figure*}[t]
+\centerline{\includegraphics[width=\textwidth]{00_pipeline.pdf}}
+\caption{End-to-end pipeline. Enrolment records are cleaned and validated (1), a
+student- and course-flow model projects next-year seat demand per course (2), projected
+demand is compared against modelled capacity to identify bottlenecks (3), two integer
+optimisation models allocate sections (4), and the results are delivered through a web
+interface, generated reports and an independently verified Excel workbook (5). Section
+capacity and the section budget enter as planning parameters, not as dataset variables.
+In the multi-year scenario loop, demand left unserved in one year returns as backlog in
+the next.}
+\label{fig:pipeline}
+\end{figure*}
 
 \section{Study Data and Planning Parameters}
 
