@@ -39,7 +39,6 @@ STAGES = [
         "Student & course flow model",
         r"$D_c = F_c(1{+}g) + \rho_c R_c$",
         f"{n(proj['demand'])} seats of demand",
-        "Split-half validated (4.2% MAPE)",
     ]),
     ("3", "DIAGNOSE", ORANGE, [
         "Demand vs modelled capacity",
@@ -51,8 +50,6 @@ STAGES = [
     ("5", "DELIVER", BLUE, [
         "Web interface (Flask)",
         "Report, tables & figures",
-        "Excel Solver + hand check",
-        "32 automated tests",
     ]),
 ]
 
