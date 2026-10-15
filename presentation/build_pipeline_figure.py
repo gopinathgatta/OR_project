@@ -145,9 +145,6 @@ fb_y = Y + BH + 4.2
 arrow(x4 + BW / 2, Y + BH + 0.3, x4 + BW / 2, fb_y, color=ORANGE, lw=1.8, style="-")
 arrow(x4 + BW / 2, fb_y, xs[1] + BW / 2, fb_y, color=ORANGE, lw=1.8, style="-")
 arrow(xs[1] + BW / 2, fb_y, xs[1] + BW / 2, Y + BH + 0.3, color=ORANGE, lw=1.8)
-ax.text((xs[1] + x4 + BW) / 2, fb_y + 1.5,
-        "unserved demand returns as next-year backlog  ·  5-year scenario loop",
-        ha="center", va="bottom", fontsize=10, color=ORANGE, fontweight="semibold", zorder=3)
 
 ax.text(2.0, 2.2, "Capacity planning only — the models allocate teaching capacity; "
                   "they do not predict which students drop out.",
