@@ -39,6 +39,99 @@ y = 0   do not</code>
 </div>
 
 <div class="card">
+    <h2>Constraints &mdash; the rules the solution must obey</h2>
+    <div class="table-wrap">
+        <table class="table-prose">
+            <thead><tr>
+                <th class="left">#</th>
+                <th class="left">Constraint</th>
+                <th class="left">In symbols</th>
+                <th class="left">What it means</th>
+                <th>How many</th>
+            </tr></thead>
+            <tbody>
+                <tr>
+                    <td class="left">C1</td>
+                    <td class="left"><strong>Stay inside the budget</strong></td>
+                    <td class="left"><code style="display:inline;padding:3px 7px">&Sigma; y_ck &le; {{ budget }}</code></td>
+                    <td class="left">All the extra sections you open, added together, cannot exceed the
+                        budget. This is the constraint that actually bites: the solver used
+                        <strong>{{ s.extra_sections_used }}</strong> of {{ budget }}.</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td class="left">C2</td>
+                    <td class="left"><strong>Open sections in order</strong></td>
+                    <td class="left"><code style="display:inline;padding:3px 7px">y_ck &le; y_c,k&minus;1</code></td>
+                    <td class="left">You cannot open a course's 2nd extra section without its 1st.
+                        Without this the solver could claim the high coverage of a first section while
+                        nominally opening a later one.
+                        {% if n_order == 0 %}On this data no course is short by more than one section's
+                        worth, so there are no second sections and this constraint is empty.{% endif %}</td>
+                    <td>{{ n_order | num }}</td>
+                </tr>
+                <tr>
+                    <td class="left">C3</td>
+                    <td class="left"><strong>Fairness cap per programme</strong></td>
+                    <td class="left"><code style="display:inline;padding:3px 7px">&Sigma;<sub>c&isin;p</sub> y_ck &le; {{ maxprog if maxprog else 'M' }}</code></td>
+                    <td class="left">{% if maxprog %}No single programme may absorb more than
+                        {{ maxprog }} of the extra sections, so one large programme cannot take
+                        everything.{% else %}Switched off &mdash; "Max per programme" is 0, so no
+                        programme limit is applied. Set it above 0 to turn this on.{% endif %}</td>
+                    <td>{{ n_prog | num }}</td>
+                </tr>
+                <tr>
+                    <td class="left">C4</td>
+                    <td class="left"><strong>Yes or no, nothing between</strong></td>
+                    <td class="left"><code style="display:inline;padding:3px 7px">y_ck &isin; {0, 1}</code></td>
+                    <td class="left">Each candidate section is either opened (1) or not (0). You cannot
+                        open 0.6 of a section. This is what makes the model <em>Binary</em>
+                        Programming.</td>
+                    <td>{{ n_vars | num }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 style="margin-top:18px">What each symbol means</h3>
+    <div class="dot-grid">
+        <div class="dot-box">
+            <div class="dot-title">y<sub>ck</sub></div>
+            <div class="dot-sub">decision variable &mdash; chosen by the solver</div>
+            <div class="dot-body">1 if the k-th extra section of course c is opened, 0 if not.
+                There are <strong>{{ n_vars | num }}</strong> candidate sections, across
+                {{ n_short | num }} short courses.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">U<sub>c</sub></div>
+            <div class="dot-sub">computed from the data</div>
+            <div class="dot-body">Unmet demand of course c before any extra section:
+                max(0, D<sub>c</sub> &minus; cap &times; current sections). Total:
+                <strong>{{ s.unmet_demand_before | num }}</strong> students.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">a<sub>ck</sub></div>
+            <div class="dot-sub">the objective coefficient</div>
+            <div class="dot-body">Students that section would seat, min(cap, remaining shortfall).
+                It shrinks for later sections of the same course, so the last one is only part full.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">B = {{ budget }}</div>
+            <div class="dot-sub">parameter &mdash; chosen by the planner</div>
+            <div class="dot-body">Extra sections you can fund. Clearing every shortfall would need
+                <strong>{{ s.sections_needed_to_clear_all }}</strong>.</div>
+        </div>
+    </div>
+
+    <p class="note" style="margin-top:14px">
+        Solving means choosing the set of y values that seats the <strong>most</strong> students while
+        C1 to C4 all hold. The result cuts unseated students from
+        <strong>{{ s.unmet_demand_before | num }}</strong> to
+        <strong>{{ s.unmet_demand_after | num }}</strong>.
+    </p>
+</div>
+
+<div class="card">
     <h3>Parameters</h3>
     <form class="form-row" method="get">
         <div class="field">

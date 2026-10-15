@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 from functools import lru_cache
 
+import numpy as np
 import pandas as pd
 from flask import Flask, Response, render_template, request
 
@@ -130,9 +131,12 @@ def model1():
     buffer = request.args.get("buffer", type=float) or 0.0
     r, alloc, current = run_model1(cap, buffer)
     changed = alloc[alloc["change"] != 0].sort_values("change")
+    n_courses = len(alloc)
+    n_runs = int((alloc["demand"] > 0).sum())      # courses that must run at least one section
     return render_template(
         "model1.html", title="Model 1 - Integer Programming", cap=cap, buffer=buffer,
         s=r.summary, current=current, status=r.status,
+        n_courses=n_courses, n_runs=n_runs,
         rows=changed.head(60).to_dict(orient="records"),
         n_more=int((alloc["change"] > 0).sum()), n_less=int((alloc["change"] < 0).sum()),
         chart_labels=[c[:8] for c in changed.head(15)["course_id"]],
@@ -151,9 +155,15 @@ def model2():
     r, alloc = run_model2(cap, budget, maxprog, "uniform")
     short = alloc[alloc["unmet_before"] > 0].sort_values("unmet_before", ascending=False)
     top = short.head(15)
+    # how many candidate sections (y variables) and how many of each constraint type
+    k_per_course = np.minimum(np.ceil(short["unmet_before"] / cap), budget).astype(int)
+    n_vars = int(k_per_course.sum())
+    n_order = int(np.maximum(k_per_course - 1, 0).sum())     # y_ck <= y_c,k-1 for k >= 2
+    n_prog = int(short["programme_id"].nunique()) if maxprog else 0
     return render_template(
         "model2.html", title="Model 2 - Binary Programming", cap=cap, budget=budget,
         maxprog=maxprog, s=r.summary, status=r.status,
+        n_vars=n_vars, n_order=n_order, n_prog=n_prog, n_short=len(short),
         rows=short.head(60).to_dict(orient="records"),
         chart_labels=[c[:8] for c in top["course_id"]],
         chart_covered=top["covered_demand"].round(1).tolist(),

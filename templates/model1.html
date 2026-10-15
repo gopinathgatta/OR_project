@@ -36,6 +36,85 @@
 </div>
 
 <div class="card">
+    <h2>Constraints &mdash; the rules the solution must obey</h2>
+    <div class="table-wrap">
+        <table class="table-prose">
+            <thead><tr>
+                <th class="left">#</th>
+                <th class="left">Constraint</th>
+                <th class="left">In symbols</th>
+                <th class="left">What it means</th>
+                <th>How many</th>
+            </tr></thead>
+            <tbody>
+                <tr>
+                    <td class="left">C1</td>
+                    <td class="left"><strong>Seat the demand</strong></td>
+                    <td class="left"><code style="display:inline;padding:3px 7px">cap &middot; x_c &ge; (1+&beta;) &middot; D_c</code></td>
+                    <td class="left">For <em>every</em> course, the seats you provide must cover its
+                        projected demand. With cap&nbsp;=&nbsp;{{ cap | int }} and
+                        &beta;&nbsp;=&nbsp;{{ buffer }}, a course with demand 98 needs
+                        {{ cap | int }}&nbsp;&times;&nbsp;x &ge; {{ (98 * (1 + buffer)) | round(1) }},
+                        so x&nbsp;=&nbsp;{{ ((98 * (1 + buffer)) / cap) | round(2) }} rounds up.</td>
+                    <td>{{ n_courses | num }}</td>
+                </tr>
+                <tr>
+                    <td class="left">C2</td>
+                    <td class="left"><strong>A course with demand must run</strong></td>
+                    <td class="left"><code style="display:inline;padding:3px 7px">x_c &ge; 1</code></td>
+                    <td class="left">A course that students need cannot be given zero sections, even if
+                        only 12 students take it. Courses with no projected demand are exempt and get 0.</td>
+                    <td>{{ n_runs | num }}</td>
+                </tr>
+                <tr>
+                    <td class="left">C3</td>
+                    <td class="left"><strong>Whole sections only</strong></td>
+                    <td class="left"><code style="display:inline;padding:3px 7px">x_c &isin; {0, 1, 2, 3, &hellip;}</code></td>
+                    <td class="left">You cannot open 2.4 sections. This is what makes the model
+                        <em>Integer</em> Programming rather than linear programming.</td>
+                    <td>{{ n_courses | num }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 style="margin-top:18px">What each symbol means</h3>
+    <div class="dot-grid">
+        <div class="dot-box">
+            <div class="dot-title">x<sub>c</sub></div>
+            <div class="dot-sub">decision variable &mdash; chosen by the solver</div>
+            <div class="dot-body">Sections to open for course c. One per course, so
+                <strong>{{ n_courses | num }}</strong> variables in total.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">D<sub>c</sub></div>
+            <div class="dot-sub">parameter &mdash; from the forecast</div>
+            <div class="dot-body">Projected seat demand for course c. Total across all courses:
+                <strong>{{ s.total_demand | num }}</strong> seats.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">cap = {{ cap | int }}</div>
+            <div class="dot-sub">parameter &mdash; chosen by the planner</div>
+            <div class="dot-body">Students one section can seat. Not a dataset variable; you set it
+                in the box below.</div>
+        </div>
+        <div class="dot-box">
+            <div class="dot-title">&beta; = {{ buffer }}</div>
+            <div class="dot-sub">parameter &mdash; chosen by the planner</div>
+            <div class="dot-body">Safety buffer. Plan for {{ (buffer * 100) | round(0) | int }}% more
+                demand than forecast. At 0 you plan for exactly the forecast.</div>
+        </div>
+    </div>
+
+    <p class="note" style="margin-top:14px">
+        Solving means finding the <strong>smallest</strong> total
+        &Sigma;&nbsp;x<sub>c</sub> for which C1, C2 and C3 all hold at the same time. The result is
+        <strong>{{ s.total_sections | num }}</strong> sections, with
+        <strong>{{ s.unmet_demand | num }}</strong> students unseated.
+    </p>
+</div>
+
+<div class="card">
     <h3>Parameters</h3>
     <form class="form-row" method="get">
         <div class="field">
